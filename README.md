@@ -5,3 +5,9 @@
 [EECS 545 Relevant paper link](https://docs.google.com/document/d/1-CQj3prjYrPnnRW2pXleLcrcgTmv74kcz5GLxVRUyX8/edit#heading=h.13f4kuk7nrks)
 
 [project proposal Guideline](https://docs.google.com/document/d/1Cfwg0ES6dqo3hcUq1IAKTl7RlRYQMk3yqrK8PbY76Lk/edit#)
+
+Datasets
+
+[SVHN](http://ufldl.stanford.edu/housenumbers/)
+
+[CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html)
