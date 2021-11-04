@@ -17,3 +17,9 @@ Existing Code Repositories
 [Mean Teacher](https://github.com/CuriousAI/mean-teacher)
 
 [Virtual Adversarial Training](https://github.com/takerum/vat_tf)
+
+Relevant Paper
+
+[Mean teachers are better role models: Weight-averaged consistency targets improve semi-supervised deep learning results](https://arxiv.org/pdf/1703.01780.pdf)
+
+[Virtual Adversarial Training: A Regularization Method for Supervised and Semi-Supervised Learning](https://arxiv.org/pdf/1704.03976.pdf)
