@@ -16,4 +16,4 @@ Existing Code Repositories
 
 [Mean Teacher](https://github.com/CuriousAI/mean-teacher)
 
-[VAT](https://github.com/takerum/vat_tf)
+[Virtual Adversarial Training](https://github.com/takerum/vat_tf)
