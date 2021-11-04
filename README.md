@@ -12,7 +12,7 @@ Datasets
 
 [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html)
 
-[Existing code repository]
+Existing Code Repositories
 
 [Mean Teacher](https://github.com/CuriousAI/mean-teacher)
 
