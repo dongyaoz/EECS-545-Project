@@ -13,8 +13,8 @@ from .utils import export
 # add svhn
 @export
 def svhn():                
-    channel_stats = dict(mean=[x/255.0 for x in [111.60893667531344, 113.161274663812, 120.5651276685803]],
-                         std=[x/255.0 for x in [50.49768174025085,  51.25898430316379,  50.24421613903954]])
+    dict(mean=[0.5,0.5,0.5],
+         std=[0.5,0.5,0.5])
     train_transformation = data.TransformTwice(transforms.Compose([
         data.RandomTranslateWithReflect(4),
         transforms.RandomHorizontalFlip(),
