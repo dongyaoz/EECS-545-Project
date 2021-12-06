@@ -18,6 +18,8 @@ Existing Code Repositories
 
 [Virtual Adversarial Training](https://github.com/takerum/vat_tf)
 
+[Temporal Ensembling & PI Model](https://github.com/tensorfreitas/Temporal-Ensembling-for-Semi-Supervised-Learning)
+
 Relevant Paper
 
 [Mean teachers are better role models: Weight-averaged consistency targets improve semi-supervised deep learning results](https://arxiv.org/pdf/1703.01780.pdf)
