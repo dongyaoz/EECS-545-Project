@@ -13,3 +13,6 @@ Pytorch implementation of "Virtual Adversarial Training: a Regularization Method
   
 ## For reproducing semi-supervised learning results for CIFAR10 with VAT loss + Entropy loss:
 ```python main.py --dataroot=<dataroot> --dataset=cifar10 --method=vatent --num_epochs=500 --epoch_decay_start=460 --epsilon=10.0 --top_bn=False```
+
+## To run ours
+python main.py —dataset svhn —dataroot svhn
