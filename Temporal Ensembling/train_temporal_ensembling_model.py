@@ -17,12 +17,12 @@ from pi_model import PiModel, temporal_ensembling_gradients, ramp_up_function, r
 
 def main():
     # Constants variables
-    NUM_TRAIN_SAMPLES = 73257
-    NUM_TEST_SAMPLES = 26032
+    NUM_TRAIN_SAMPLES = 4200 #73257
+    NUM_TEST_SAMPLES = 1000 #26032
 
     # Editable variables
-    num_labeled_samples = 3000
-    num_validation_samples = 1000
+    num_labeled_samples = 1000
+    num_validation_samples = 200
     num_train_unlabeled_samples = NUM_TRAIN_SAMPLES - \
         num_labeled_samples - num_validation_samples
     batch_size = 150
