@@ -96,9 +96,9 @@ def main():
         epoch_accuracy = tfe.metrics.Accuracy()
         epoch_loss_avg_val = tfe.metrics.Mean()
         epoch_accuracy_val = tfe.metrics.Accuracy()
-
+    
         for batch_nr in range(batches_per_epoch):
-
+            print('batch_nr:', batch_nr)
             X_labeled_train, y_labeled_train, labeled_indexes = train_labeled_iterator.get_next()
             X_unlabeled_train, _, unlabeled_indexes = train_unlabeled_iterator.get_next()
 

@@ -261,6 +261,7 @@ class PiModel(tf.keras.Model):
             random_shifts)
         image = tf.contrib.image.transform(image, random_transformations, 'NEAREST',
                                            output_shape=tf.convert_to_tensor(image.numpy().shape[1:3], dtype=np.int32))
+        image = tf.image.flip_left_right(image)
         return image
 
     def call(self, input, training=True):
