@@ -16,7 +16,7 @@ class SvnhLoader:
     """
 
     # Constant attributes
-    _NUM_TOTAL_SAMPLES = 99289
+    _NUM_TOTAL_SAMPLES = 5200 #99289
     _TRAIN_URL = 'http://ufldl.stanford.edu/housenumbers/train_32x32.mat'
     _TEST_URL = 'http://ufldl.stanford.edu/housenumbers/test_32x32.mat'
     _IMAGE_SIZE = [32, 32, 3]
@@ -185,12 +185,15 @@ class SvnhLoader:
         validation_X = np.empty(shape=(0, 32*32*3))
         validation_y = []
 
+        test_X = test_X[:self._num_test_samples]
+        test_y = test_y[:self._num_test_samples]
+
         # Randomly shuffle the dataset, and have balanced labeled and validation
         # datasets (avoid having and unbalenced train set that could hurt the results)
         for label in range(10):
             label_mask = (train_y == label)
-            current_label_X = train_X[label_mask]
-            current_label_y = train_y[label_mask]
+            current_label_X = train_X[label_mask][:int(self._num_train_samples/self._NUM_CLASSES)]
+            current_label_y = train_y[label_mask][:int(self._num_train_samples/self._NUM_CLASSES)]
             current_label_X, current_label_y = rng.permutation(
                 current_label_X), rng.permutation(current_label_y)
             # Take care of the labeled train set

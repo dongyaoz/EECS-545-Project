@@ -13,8 +13,8 @@ from pi_model import PiModel, pi_model_loss, pi_model_gradients, ramp_up_functio
 
 def main():
     # Constants variables
-    NUM_TRAIN_SAMPLES = 73257
-    NUM_TEST_SAMPLES = 26032
+    NUM_TRAIN_SAMPLES = 4200 #73257
+    NUM_TEST_SAMPLES = 1000 #26032
 
     # Editable variables
     num_labeled_samples = 1000
@@ -76,6 +76,7 @@ def main():
         epoch_loss_avg_val = tfe.metrics.Mean()
         epoch_accuracy_val = tfe.metrics.Accuracy()
         for batch_nr in range(batches_per_epoch):
+            print('batch_nr: ', batch_nr)
             X_labeled_train, y_labeled_train, _ = train_labeled_iterator.get_next()
             X_unlabeled_train, _, _ = train_unlabeled_iterator.get_next()
 
