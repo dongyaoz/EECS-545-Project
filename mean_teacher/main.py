@@ -24,12 +24,14 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader
 import torchvision.datasets
 
+# clear unnecessary caches
+torch.cuda.empty_cache()
+torch.cuda.memory_summary(device=None, abbreviated=False)
+
 np.random.seed(5)
 torch.manual_seed(5)
 
 args =None
-
-
 best_prec1 = 0
 global_step = 0
 
@@ -39,17 +41,27 @@ def main(args):
     global best_prec1
 
 
+#     train_transform = data.TransformTwice(transforms.Compose([
+#         data.RandomTranslateWithReflect(4),
+#         transforms.RandomHorizontalFlip(),
+#         transforms.ToTensor(),
+#         transforms.Normalize((0.4914, 0.4822, 0.4465),(0.2470,  0.2435,  0.2616))]))
+
+#     eval_transform = transforms.Compose([
+#         transforms.ToTensor(),
+#         transforms.Normalize((0.4914, 0.4822, 0.4465),(0.2470,  0.2435,  0.2616))
+#     ])
+    # modified data strct. to match VAT
     train_transform = data.TransformTwice(transforms.Compose([
         data.RandomTranslateWithReflect(4),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465),(0.2470,  0.2435,  0.2616))]))
+        transforms.Normalize((0.5, 0.5, 0.5),(0.5,  0.5,  0.5))]))
 
     eval_transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465),(0.2470,  0.2435,  0.2616))
+        transforms.Normalize((0.5, 0.5, 0.5),(0.5,  0.5,  0.5))
     ])
-
 
 
     traindir = os.path.join(args.datadir, args.train_subdir)
