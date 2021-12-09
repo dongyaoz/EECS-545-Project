@@ -5,11 +5,13 @@ import numpy as np
 
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
+from tensorflow.python.ops.init_ops import TruncatedNormal
 
 # Enable Eager Execution
 tf.enable_eager_execution()
 
 from svnh_loader import SvnhLoader
+from cifar10_loader import Cifar10Loader
 from tfrecord_loader import TfrecordLoader
 
 from pi_model import PiModel, temporal_ensembling_gradients, ramp_up_function, ramp_down_function
@@ -19,6 +21,10 @@ def main():
     # Constants variables
     NUM_TRAIN_SAMPLES = 4200 #73257
     NUM_TEST_SAMPLES = 1000 #26032
+
+    # choose dataset
+    use_cifar10 = True
+    use_svhn = False
 
     # Editable variables
     num_labeled_samples = 1000
@@ -41,7 +47,11 @@ def main():
     beta_1 = tfe.Variable(initial_beta1)
 
     # Download and Save Dataset in Tfrecords
-    loader = SvnhLoader('./data', NUM_TRAIN_SAMPLES,
+    if use_cifar10:
+        loader = Cifar10Loader('./data', NUM_TRAIN_SAMPLES,
+                        num_validation_samples, num_labeled_samples)
+    else:
+        loader = SvnhLoader('./data', NUM_TRAIN_SAMPLES,
                         num_validation_samples, num_labeled_samples)
     loader.download_images_and_generate_tf_record()
 

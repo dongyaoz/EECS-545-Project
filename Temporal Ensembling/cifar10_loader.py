@@ -4,21 +4,20 @@ import urllib
 
 from scipy.io import loadmat
 import numpy as np
-
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 import tensorflow as tf
 
 from tfrecord_loader import TfrecordLoader
 
 
-class SvnhLoader:
+class Cifar10Loader:
     """ If not in the disk, download the SVNH dataset and prepares the dataset ready
         to be loaded for the Semi-supervised learning task in tensorflow,
     """
 
     # Constant attributes
     _NUM_TOTAL_SAMPLES = 5200 #99289
-    _TRAIN_URL = 'http://ufldl.stanford.edu/housenumbers/train_32x32.mat'
-    _TEST_URL = 'http://ufldl.stanford.edu/housenumbers/test_32x32.mat'
     _IMAGE_SIZE = [32, 32, 3]
     _NUM_CLASSES = 10
 
@@ -44,36 +43,6 @@ class SvnhLoader:
             num_validation_samples - num_labeled_samples
         self._random_seed = random_seed
 
-    def __normalize_and_prepare_dataset(self, mat_dataset):
-        """ Receives a mat dataset and normalized the data accordingly to the 
-           described in the original paper (std normalization)
-
-        Arguments:
-            mat_dataset {dict} -- mat dict (scipy.io.loadmat) dataset directly loaded 
-                                  from the url mat
-
-        Returns:
-            [np.ndarray] -- Images normalized and flattened (num_images x (32*32*3))
-            [np.ndarray] -- Correspondent labels
-        """
-
-        # Convert data to numpy array
-        X = mat_dataset['X'].astype(np.float64)
-
-        # Original dataset comes with wrong order in the dimensions
-        X = X.transpose((3, 0, 1, 2))
-        
-        # Normalize it with mean [0.5 0.5 0.5] and std [0.5 0.5 0.5]
-        X = X/255
-        X = (X-0.5)/0.5
-
-        X = X.reshape([X.shape[0], -1])
-        y = mat_dataset['y'].flatten().astype(np.int32)
-        # 0 is label 10
-        y[y == 10] = 0
-
-        return X, y
-
     def __download_and_extract_dataset(self):
         """ Downloads the dataset and saves it in the _dataset_path. 
             Data is saved as a .mat file (as given by the original
@@ -86,33 +55,21 @@ class SvnhLoader:
             [np.array] -- test labels
         """
 
-        filepath_train = self._dataset_path + '/train_32x32.mat'
-        filepath_test = self._dataset_path + '/test_32x32.mat'
+        (train_X, train_y), (test_X, test_y) = tf.keras.datasets.cifar10.load_data()
 
-        def download_progress(count, block_size, total_size):
-            sys.stdout.write('\r>> Downloading %.1f%%' % (
-                float(count * block_size) / float(total_size) * 100.0))
-            sys.stdout.flush()
+        # Normalize it with mean [0.5 0.5 0.5] and std [0.5 0.5 0.5]
+        train_X = train_X/255
+        train_X = (train_X-0.5)/0.5
+        train_X = train_X.reshape([train_X.shape[0], -1])
+        test_X = test_X/255
+        test_X = (test_X-0.5)/0.5
+        test_X = test_X.reshape([test_X.shape[0], -1])
 
-        # Download dataset
-        urllib.request.urlretrieve(
-            self._TRAIN_URL, filepath_train, download_progress)
-        urllib.request.urlretrieve(
-            self._TEST_URL, filepath_test, download_progress)
-
-        print('\n')
-
-        # Load resultant mat files
-        train_data = loadmat(filepath_train)
-        test_data = loadmat(filepath_test)
-
-        # Normalize between 0 and 1
-        train_X, train_y = self.__normalize_and_prepare_dataset(train_data)
-        test_X, test_y = self.__normalize_and_prepare_dataset(test_data)
-
-        # Remove mat files
-        os.remove(filepath_train)
-        os.remove(filepath_test)
+        # 0 is label 10
+        train_y = np.squeeze(train_y)
+        train_y[train_y == 10] = 0
+        test_y = np.squeeze(test_y)
+        test_y[test_y == 10] = 0
 
         print('train_X, train_y, test_X, test_y', train_X.shape, train_y.shape, test_X.shape, test_y.shape)
         return train_X, train_y, test_X, test_y
