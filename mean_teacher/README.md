@@ -21,7 +21,7 @@ I only used Cifar-10 Dataset. I have used the following architectures:
 
 also work: conda install pytorch==1.7.1 torchvision==0.8.2 torchaudio==0.7.2 cudatoolkit=11.0 -c pytorch
 
-I used 2 Titan Xp GPUs. Average training time is 3 hours for hybrid network and 1 hour for other networks.
+original repo used 2 Titan Xp GPUs. Average training time is 3 hours for hybrid network and 1 hour for other networks.
  
 ### Dataset 
  remainder: I didn't include the shell, but the three folders under "...\data-local\images\cifar\cifar10\by-image" should be \train, \test, and \val
