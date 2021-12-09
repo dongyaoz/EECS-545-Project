@@ -12,22 +12,17 @@ I only used Cifar-10 Dataset. I have used the following architectures:
 2. Convlarge based HybridNet ( For Hybrid Net ) 
 
 
-
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. 
-
-### Prerequisites
-
-What things you need to install:
-1. Pytorch 0.4.1
-2. Python 3.6.6
-3. TensorboardX
+### versions I use:
+1. Pytorch 1.6.0
+2. Python 3.7.3
+3. torchvision 0.7.0 
+4. cudatoolkit 10.2
+5. TensorboardX
 
 I used 2 Titan Xp GPUs. Average training time is 3 hours for hybrid network and 1 hour for other networks.
  
 ### Dataset 
- You may set up CIFAR-10 inside the repository by running the following command.
+ remainder: I didn't include the shell, but the three folders under "...\data-local\images\cifar\cifar10\by-image" should be \train, \test, and \val
 
 ```
 ./data-local/bin/prepare_cifar10.sh
