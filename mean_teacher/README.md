@@ -14,10 +14,12 @@ I only used Cifar-10 Dataset. I have used the following architectures:
 
 ### versions I use:
 1. Pytorch 1.6.0
-2. Python 3.7.3
+2. Python 3.7.3 (<3.8)
 3. torchvision 0.7.0 
 4. cudatoolkit 10.2
 5. TensorboardX
+
+also work: conda install pytorch==1.7.1 torchvision==0.8.2 torchaudio==0.7.2 cudatoolkit=11.0 -c pytorch
 
 I used 2 Titan Xp GPUs. Average training time is 3 hours for hybrid network and 1 hour for other networks.
  
