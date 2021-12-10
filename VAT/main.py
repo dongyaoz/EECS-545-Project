@@ -4,7 +4,8 @@ import torch.optim as optim
 from model import *
 from utils import *
 import os
-from Datasets import data
+
+import checkpoint
 
 # batch_size = 32
 batch_size = 16
@@ -85,7 +86,6 @@ if opt.dataset == 'svhn':
                       ])),
         batch_size=batch_size, shuffle=True)
 
-
     test_loader = torch.utils.data.DataLoader(
         datasets.SVHN(root=opt.dataroot, split='test', download=True,
                       transform=transforms.Compose([
@@ -96,18 +96,9 @@ if opt.dataset == 'svhn':
 
 elif opt.dataset == 'cifar10':
     num_labeled = 4000
-#     train_loader = torch.utils.data.DataLoader(
-#         datasets.CIFAR10(root=opt.dataroot, train=True, download=True,
-#                       transform=transforms.Compose([
-#                           transforms.ToTensor(),
-#                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-#                       ])),
-#         batch_size=batch_size, shuffle=True)
     train_loader = torch.utils.data.DataLoader(
         datasets.CIFAR10(root=opt.dataroot, train=True, download=True,
                       transform=transforms.Compose([
-                          data.RandomTranslateWithReflect(4),
-                          transforms.RandomHorizontalFlip(),
                           transforms.ToTensor(),
                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                       ])),
@@ -144,8 +135,12 @@ model = tocuda(VAT(opt.top_bn))
 model.apply(weights_init)
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
+# Attempts to restore the latest checkpoint if exists
+print('Loading model...')
+model, start_epoch = checkpoint.restore_checkpoint(model, 'checkpoints/{}'.format(opt.dataset))
+
 # train the network
-for epoch in range(opt.num_epochs):
+for epoch in range(start_epoch, opt.num_epochs):
 
     if epoch > opt.epoch_decay_start:
         decayed_lr = (opt.num_epochs - epoch) * lr / (opt.num_epochs - opt.epoch_decay_start)
@@ -166,7 +161,7 @@ for epoch in range(opt.num_epochs):
         if i % 100 == 0:
             # print(v_loss.item(), ce_loss.item())
             # print("Epoch :", epoch, "Iter :", i, "VAT Loss :", v_loss.data[0], "CE Loss :", ce_loss.data[0])
-            print("Epoch :", epoch, "Iter :", i, "VAT Loss :", v_loss.item(), "CE Loss :", ce_loss.item())
+            print("Epoch :", epoch+1, "Iter :", i, "VAT Loss :", v_loss.item(), "CE Loss :", ce_loss.item())
 
     if epoch % eval_freq == 0 or epoch + 1 == opt.num_epochs:
 
@@ -182,6 +177,9 @@ for epoch in range(opt.num_epochs):
             # print("Test accuracy :", test_accuracy.data[0])
             print("Test accuracy :", test_accuracy.item())
             break
+
+    # Save checkpoint
+    checkpoint.save_checkpoint(model, epoch+1, 'checkpoints/{}'.format(opt.dataset))
 
 
 test_accuracy = 0.0
