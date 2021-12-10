@@ -2,11 +2,37 @@ import argparse
 from torchvision import datasets, transforms
 import torch.optim as optim
 # from model import *
-from VAT_MT_util import *
+# from VAT_MT_util import *
 import os
 
 from Datasets import data
 import checkpoint
+
+import os
+import shutil
+
+import numpy as np
+import torch
+
+from Datasets.data import NO_LABEL
+from misc.utils import *
+from tensorboardX import SummaryWriter
+import datetime
+from parameters import get_parameters
+import models
+
+from misc import ramps
+from Datasets import data
+from models import losses
+
+import torchvision.transforms as transforms
+
+
+import torch.nn as nn
+import torch.backends.cudnn as cudnn
+from torch.autograd import Variable
+from torch.utils.data import DataLoader
+import torchvision.datasets
 
 # batch_size = 32
 batch_size = 16
@@ -29,36 +55,74 @@ parser.add_argument('--epoch_decay_start', type=int, default=80)
 parser.add_argument('--epsilon', type=float, default=2.5)
 parser.add_argument('--top_bn', type=bool, default=True)
 parser.add_argument('--method', default='vat')
+parser.add_argument('--model',default='convlarge', help='Basically using Convlarge for all experiments')
 
 
 opt = parser.parse_args()
 
 os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
 
-def tocuda(x):
-    if opt.use_cuda:
-        return x.cuda()
-    return x
+# def tocuda(x):
+#     if opt.use_cuda:
+#         return x.cuda()
+#     return x
 
+def _l2_normalize(d):
+
+    d = d.numpy()
+    d /= (np.sqrt(np.sum(d ** 2, axis=(1, 2, 3))).reshape((-1, 1, 1, 1)) + 1e-16)
+    return torch.from_numpy(d)
+
+def fint_vap_x(ul_x, xi=1e-6, eps=2.5, num_iters=1):
+
+    # find x+pertubation
+
+    d = torch.Tensor(ul_x.size()).normal_()
+    for i in range(num_iters):
+        d = xi *_l2_normalize(d)
+        d = Variable(d.cuda(), requires_grad=True)
+        y_hat = ema_model(ul_x + d)
+        d = d.grad.data.clone().cpu()
+        ema_model.zero_grad()
+
+    d = _l2_normalize(d)
+    d = Variable(d.cuda())
+    r_adv = eps *d
+    # compute lds
+    y_hat = ema_model(ul_x + r_adv.detach())
+    return y_hat
+
+
+def entropy_loss(ul_y):
+    p = F.softmax(ul_y, dim=1)
+    return -(p*F.log_softmax(ul_y, dim=1)).sum(dim=1).mean(dim=0)
+
+
+def d_mse(p1,p2):
+    loss = nn.MSELoss()
+    mse_loss = loss(p1, p2)
+    return mse_loss
+
+    
 
 def train(x, y, optimizer):
-    # get_student: find student_model output
-    # get_teacher: find teacher_model output
+    # model: find student_model output
+    # ema_model: find teacher_model output
     # y: baseline y
     # y_pred: emaout1, which is the student model output of baseline x
 
     # Ls: cross entropy loss
     ce = nn.CrossEntropyLoss()
-    emaout1 = get_student(x)
+    emaout1 = model(x)
     ce_loss = ce(emaout1, y) 
 
     # find x + perterbation
     x_vap = fint_vap_x(x)
-    emaout2 = get_student(x_vap)
+    emaout2 = model(x_vap)
 
      # get teacher model output
-    out1 = get_teacher(emaout1)
-    out2 = get_teacher(emaout2)
+    out1 = ema_model(emaout1)
+    out2 = ema_model(emaout2)
     # d_mse
     d_loss = d_mse(out1, out2)
     loss = d_loss + ce_loss
@@ -146,9 +210,14 @@ valid_target, train_target = train_target[:num_valid], train_target[num_valid:, 
 labeled_train, labeled_target = train_data[:num_labeled, ], train_target[:num_labeled, ]
 unlabeled_train = train_data[num_labeled:, ]
 
-model = tocuda(VAT(opt.top_bn))
+
+#  Intializing the model
+model = models.__dict__[args.model](args, data=None).cuda()
+ema_model = models.__dict__[args.model](args,nograd = True, data=None).cuda()
 model.apply(weights_init)
+ema_model.apply(weights_init)
 optimizer = optim.Adam(model.parameters(), lr=lr)
+optimizer = optim.Adam(ema_model.parameters(), lr=lr)
 
 # Attempts to restore the latest checkpoint if exists
 print('Loading model...')
