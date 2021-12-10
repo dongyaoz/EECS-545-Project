@@ -9,7 +9,10 @@ ssl._create_default_https_context = ssl._create_unverified_context
 import tensorflow as tf
 
 from tfrecord_loader import TfrecordLoader
+import itertools
+import os.path
 
+from PIL import Image
 
 class Cifar10Loader:
     """ If not in the disk, download the SVNH dataset and prepares the dataset ready
@@ -17,7 +20,7 @@ class Cifar10Loader:
     """
 
     # Constant attributes
-    _NUM_TOTAL_SAMPLES = 5200 #99289
+    _NUM_TOTAL_SAMPLES = 60000 
     _IMAGE_SIZE = [32, 32, 3]
     _NUM_CLASSES = 10
 
@@ -56,6 +59,7 @@ class Cifar10Loader:
         """
 
         (train_X, train_y), (test_X, test_y) = tf.keras.datasets.cifar10.load_data()
+        train_X = self.__RandomTranslateWithReflect(train_X)
 
         # Normalize it with mean [0.5 0.5 0.5] and std [0.5 0.5 0.5]
         train_X = train_X/255
@@ -118,6 +122,50 @@ class Cifar10Loader:
             writer.write(sample.SerializeToString())
         writer.close()
 
+    def __RandomTranslateWithReflect(self, old_image_array, max_translation=4):
+        """Translate image randomly
+        Translate vertically and horizontally by n pixels where
+        n is integer drawn uniformly independently for each axis
+        from [-max_translation, max_translation].
+        Fill the uncovered blank area with reflect padding.
+        """
+        new_image_array = np.zeros(old_image_array.shape)
+
+        for i in range(old_image_array.shape[0]):
+            old_image = Image.fromarray(old_image_array[i])
+            xtranslation, ytranslation = np.random.randint(-max_translation,
+                                                        max_translation + 1,
+                                                        size=2)
+            xpad, ypad = abs(xtranslation), abs(ytranslation)
+            xsize, ysize = old_image.size
+
+            flipped_lr = old_image.transpose(Image.FLIP_LEFT_RIGHT)
+            flipped_tb = old_image.transpose(Image.FLIP_TOP_BOTTOM)
+            flipped_both = old_image.transpose(Image.ROTATE_180)
+
+            new_image = Image.new("RGB", (xsize + 2 * xpad, ysize + 2 * ypad))
+
+            new_image.paste(old_image, (xpad, ypad))
+
+            new_image.paste(flipped_lr, (xpad + xsize - 1, ypad))
+            new_image.paste(flipped_lr, (xpad - xsize + 1, ypad))
+
+            new_image.paste(flipped_tb, (xpad, ypad + ysize - 1))
+            new_image.paste(flipped_tb, (xpad, ypad - ysize + 1))
+
+            new_image.paste(flipped_both, (xpad - xsize + 1, ypad - ysize + 1))
+            new_image.paste(flipped_both, (xpad + xsize - 1, ypad - ysize + 1))
+            new_image.paste(flipped_both, (xpad - xsize + 1, ypad + ysize - 1))
+            new_image.paste(flipped_both, (xpad + xsize - 1, ypad + ysize - 1))
+
+            new_image = new_image.crop((xpad - xtranslation,
+                                        ypad - ytranslation,
+                                        xpad + xsize - xtranslation,
+                                        ypad + ysize - ytranslation))
+            new_image_array[i] = np.array(new_image)
+
+        return new_image_array
+
     def download_images_and_generate_tf_record(self):
         """ Main function of the class that allows generating and saving the tfrecords
             for labeled train, unlabeled train, validation and test datasets.
@@ -143,15 +191,15 @@ class Cifar10Loader:
         validation_X = np.empty(shape=(0, 32*32*3))
         validation_y = []
 
-        test_X = test_X[:self._num_test_samples]
-        test_y = test_y[:self._num_test_samples]
+        # test_X = test_X[:self._num_test_samples]
+        # test_y = test_y[:self._num_test_samples]
 
         # Randomly shuffle the dataset, and have balanced labeled and validation
         # datasets (avoid having and unbalenced train set that could hurt the results)
         for label in range(10):
             label_mask = (train_y == label)
-            current_label_X = train_X[label_mask][:int(self._num_train_samples/self._NUM_CLASSES)]
-            current_label_y = train_y[label_mask][:int(self._num_train_samples/self._NUM_CLASSES)]
+            current_label_X = train_X[label_mask]#[:int(self._num_train_samples/self._NUM_CLASSES)]
+            current_label_y = train_y[label_mask]#[:int(self._num_train_samples/self._NUM_CLASSES)]
             current_label_X, current_label_y = rng.permutation(
                 current_label_X), rng.permutation(current_label_y)
             # Take care of the labeled train set

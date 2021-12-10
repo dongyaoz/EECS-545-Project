@@ -16,7 +16,7 @@ class SvnhLoader:
     """
 
     # Constant attributes
-    _NUM_TOTAL_SAMPLES = 5200 #99289
+    _NUM_TOTAL_SAMPLES = 99289
     _TRAIN_URL = 'http://ufldl.stanford.edu/housenumbers/train_32x32.mat'
     _TEST_URL = 'http://ufldl.stanford.edu/housenumbers/test_32x32.mat'
     _IMAGE_SIZE = [32, 32, 3]
@@ -44,7 +44,7 @@ class SvnhLoader:
             num_validation_samples - num_labeled_samples
         self._random_seed = random_seed
 
-    def __normalize_and_prepare_dataset(self, mat_dataset):
+    def __normalize_and_prepare_dataset(self, mat_dataset, if_RandomTranslateWithReflect=False):
         """ Receives a mat dataset and normalized the data accordingly to the 
            described in the original paper (std normalization)
 
@@ -62,7 +62,9 @@ class SvnhLoader:
 
         # Original dataset comes with wrong order in the dimensions
         X = X.transpose((3, 0, 1, 2))
-        
+        if if_RandomTranslateWithReflect:
+            X = self.__RandomTranslateWithReflect(X)
+
         # Normalize it with mean [0.5 0.5 0.5] and std [0.5 0.5 0.5]
         X = X/255
         X = (X-0.5)/0.5
@@ -73,6 +75,50 @@ class SvnhLoader:
         y[y == 10] = 0
 
         return X, y
+
+    def __RandomTranslateWithReflect(self, old_image_array, max_translation=4):
+        """Translate image randomly
+        Translate vertically and horizontally by n pixels where
+        n is integer drawn uniformly independently for each axis
+        from [-max_translation, max_translation].
+        Fill the uncovered blank area with reflect padding.
+        """
+        new_image_array = np.zeros(old_image_array.shape)
+
+        for i in range(old_image_array.shape[0]):
+            old_image = Image.fromarray(old_image_array[i])
+            xtranslation, ytranslation = np.random.randint(-max_translation,
+                                                        max_translation + 1,
+                                                        size=2)
+            xpad, ypad = abs(xtranslation), abs(ytranslation)
+            xsize, ysize = old_image.size
+
+            flipped_lr = old_image.transpose(Image.FLIP_LEFT_RIGHT)
+            flipped_tb = old_image.transpose(Image.FLIP_TOP_BOTTOM)
+            flipped_both = old_image.transpose(Image.ROTATE_180)
+
+            new_image = Image.new("RGB", (xsize + 2 * xpad, ysize + 2 * ypad))
+
+            new_image.paste(old_image, (xpad, ypad))
+
+            new_image.paste(flipped_lr, (xpad + xsize - 1, ypad))
+            new_image.paste(flipped_lr, (xpad - xsize + 1, ypad))
+
+            new_image.paste(flipped_tb, (xpad, ypad + ysize - 1))
+            new_image.paste(flipped_tb, (xpad, ypad - ysize + 1))
+
+            new_image.paste(flipped_both, (xpad - xsize + 1, ypad - ysize + 1))
+            new_image.paste(flipped_both, (xpad + xsize - 1, ypad - ysize + 1))
+            new_image.paste(flipped_both, (xpad - xsize + 1, ypad + ysize - 1))
+            new_image.paste(flipped_both, (xpad + xsize - 1, ypad + ysize - 1))
+
+            new_image = new_image.crop((xpad - xtranslation,
+                                        ypad - ytranslation,
+                                        xpad + xsize - xtranslation,
+                                        ypad + ysize - ytranslation))
+            new_image_array[i] = np.array(new_image)
+
+        return new_image_array
 
     def __download_and_extract_dataset(self):
         """ Downloads the dataset and saves it in the _dataset_path. 
@@ -107,7 +153,7 @@ class SvnhLoader:
         test_data = loadmat(filepath_test)
 
         # Normalize between 0 and 1
-        train_X, train_y = self.__normalize_and_prepare_dataset(train_data)
+        train_X, train_y = self.__normalize_and_prepare_dataset(train_data,if_RandomTranslateWithReflect=Ture)
         test_X, test_y = self.__normalize_and_prepare_dataset(test_data)
 
         # Remove mat files
@@ -186,8 +232,8 @@ class SvnhLoader:
         validation_X = np.empty(shape=(0, 32*32*3))
         validation_y = []
 
-        test_X = test_X[:self._num_test_samples]
-        test_y = test_y[:self._num_test_samples]
+        # test_X = test_X[:self._num_test_samples]
+        # test_y = test_y[:self._num_test_samples]
 
         # Randomly shuffle the dataset, and have balanced labeled and validation
         # datasets (avoid having and unbalenced train set that could hurt the results)
