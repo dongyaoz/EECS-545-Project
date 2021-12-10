@@ -8,6 +8,19 @@ import os
 from Datasets import data
 import checkpoint
 
+# Solve the urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1123)>
+# when using cifar10 dataset
+import ssl
+
+try:
+   _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    # Legacy Python that doesn't verify HTTPS certificates by default
+    pass
+else:
+    # Handle target environment that doesn't support HTTPS verification
+    ssl._create_default_https_context = _create_unverified_https_context
+
 # batch_size = 32
 batch_size = 16
 eval_batch_size = 100
