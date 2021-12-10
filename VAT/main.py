@@ -4,6 +4,7 @@ import torch.optim as optim
 from model import *
 from utils import *
 import os
+from Datasets import data
 
 # batch_size = 32
 batch_size = 16
@@ -105,7 +106,7 @@ elif opt.dataset == 'cifar10':
     train_loader = torch.utils.data.DataLoader(
         datasets.CIFAR10(root=opt.dataroot, train=True, download=True,
                       transform=transforms.Compose([
-                          datasets.RandomTranslateWithReflect(4),
+                          data.RandomTranslateWithReflect(4),
                           transforms.RandomHorizontalFlip(),
                           transforms.ToTensor(),
                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
