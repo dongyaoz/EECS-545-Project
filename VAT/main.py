@@ -76,9 +76,18 @@ def weights_init(m):
 
 
 if opt.dataset == 'svhn':
+#     train_loader = torch.utils.data.DataLoader(
+#         datasets.SVHN(root=opt.dataroot, split='train', download=True,
+#                       transform=transforms.Compose([
+#                           transforms.ToTensor(),
+#                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+#                       ])),
+#         batch_size=batch_size, shuffle=True)
     train_loader = torch.utils.data.DataLoader(
         datasets.SVHN(root=opt.dataroot, split='train', download=True,
                       transform=transforms.Compose([
+                          datasets.RandomTranslateWithReflect(4),
+                          transforms.RandomHorizontalFlip(),
                           transforms.ToTensor(),
                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                       ])),
