@@ -5,6 +5,7 @@ from model import *
 from utils import *
 import os
 
+from Dataset import data
 import checkpoint
 
 # batch_size = 32
@@ -96,21 +97,21 @@ if opt.dataset == 'svhn':
 
 elif opt.dataset == 'cifar10':
     num_labeled = 4000
+#     train_loader = torch.utils.data.DataLoader(
+#         datasets.CIFAR10(root=opt.dataroot, train=True, download=True,
+#                       transform=transforms.Compose([
+#                           transforms.ToTensor(),
+#                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+#                       ])),
+#         batch_size=batch_size, shuffle=True)
     train_loader = torch.utils.data.DataLoader(
         datasets.CIFAR10(root=opt.dataroot, train=True, download=True,
                       transform=transforms.Compose([
+                          data.RandomTranslateWithReflect(4),
+                          transforms.RandomHorizontalFlip(),
                           transforms.ToTensor(),
                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                       ])),
-        batch_size=batch_size, shuffle=True)
-
-    test_loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(root=opt.dataroot, train=False, download=True,
-                      transform=transforms.Compose([
-                          transforms.ToTensor(),
-                          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-                      ])),
-        batch_size=eval_batch_size, shuffle=True)
 
 else:
     raise NotImplementedError
