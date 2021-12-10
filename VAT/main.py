@@ -21,7 +21,13 @@ else:
     # Handle target environment that doesn't support HTTPS verification
     ssl._create_default_https_context = _create_unverified_https_context
 
-# batch_size = 32
+# Setting
+# batch_size = 16
+# eval_batch_size = 16
+# unlabeled_batch_size = 16
+# solves the RuntimeError: CUDA error: CUBLAS_STATUS_ALLOC_FAILED when calling `cublasCreate(handle)`
+# and RuntimeError: CUDA out of memory.
+# Try larger batch_size if the memory permits
 batch_size = 16
 eval_batch_size = 100
 unlabeled_batch_size = 128
