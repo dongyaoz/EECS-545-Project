@@ -112,6 +112,15 @@ elif opt.dataset == 'cifar10':
                           transforms.ToTensor(),
                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                       ])),
+        batch_size=batch_size, shuffle=True)
+
+    test_loader = torch.utils.data.DataLoader(
+        datasets.CIFAR10(root=opt.dataroot, train=False, download=True,
+                      transform=transforms.Compose([
+                          transforms.ToTensor(),
+                          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                      ])),
+        batch_size=eval_batch_size, shuffle=True)
 
 else:
     raise NotImplementedError
