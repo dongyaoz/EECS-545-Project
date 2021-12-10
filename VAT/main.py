@@ -76,22 +76,14 @@ def weights_init(m):
 
 
 if opt.dataset == 'svhn':
-#     train_loader = torch.utils.data.DataLoader(
-#         datasets.SVHN(root=opt.dataroot, split='train', download=True,
-#                       transform=transforms.Compose([
-#                           transforms.ToTensor(),
-#                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-#                       ])),
-#         batch_size=batch_size, shuffle=True)
     train_loader = torch.utils.data.DataLoader(
         datasets.SVHN(root=opt.dataroot, split='train', download=True,
                       transform=transforms.Compose([
-                          datasets.RandomTranslateWithReflect(4),
-                          transforms.RandomHorizontalFlip(),
                           transforms.ToTensor(),
                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                       ])),
         batch_size=batch_size, shuffle=True)
+
 
     test_loader = torch.utils.data.DataLoader(
         datasets.SVHN(root=opt.dataroot, split='test', download=True,
@@ -103,9 +95,18 @@ if opt.dataset == 'svhn':
 
 elif opt.dataset == 'cifar10':
     num_labeled = 4000
+#     train_loader = torch.utils.data.DataLoader(
+#         datasets.CIFAR10(root=opt.dataroot, train=True, download=True,
+#                       transform=transforms.Compose([
+#                           transforms.ToTensor(),
+#                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+#                       ])),
+#         batch_size=batch_size, shuffle=True)
     train_loader = torch.utils.data.DataLoader(
         datasets.CIFAR10(root=opt.dataroot, train=True, download=True,
                       transform=transforms.Compose([
+                          datasets.RandomTranslateWithReflect(4),
+                          transforms.RandomHorizontalFlip(),
                           transforms.ToTensor(),
                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                       ])),
