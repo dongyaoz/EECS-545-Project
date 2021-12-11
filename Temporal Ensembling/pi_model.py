@@ -5,7 +5,8 @@ import tensorflow as tf
 # Edited files with weight normalization and mean only batch normalization
 import weight_norm_layers.Conv2D
 import weight_norm_layers.Dense
-
+import itertools
+import os.path
 
 def temporal_ensembling_loss(X_train_labeled, y_train_labeled, X_train_unlabeled, model, unsupervised_weight, ensembling_targets):
     """ Gets the loss for the temporal ensembling model
@@ -277,7 +278,7 @@ class PiModel(tf.keras.Model):
 
         if training:
             h = self.__aditive_gaussian_noise(input, 0.15)
-            h = self.__apply_image_augmentation(h)
+            # h = self.__apply_image_augmentation(h)
         else:
             h = input
 
