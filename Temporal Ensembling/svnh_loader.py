@@ -89,7 +89,8 @@ class SvnhLoader:
         new_image_array = np.zeros(old_image_array.shape)
 
         for i in range(old_image_array.shape[0]):
-            old_image = Image.fromarray(old_image_array[i])
+
+            old_image = Image.fromarray((old_image_array[i]).astype(np.uint8))
             xtranslation, ytranslation = np.random.randint(-max_translation,
                                                         max_translation + 1,
                                                         size=2)
