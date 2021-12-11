@@ -13,26 +13,26 @@ import shutil
 
 import numpy as np
 import torch
-
-from Datasets.data import NO_LABEL
-from misc.utils import *
-from tensorboardX import SummaryWriter
-import datetime
-from parameters import get_parameters
-import models
-
-from misc import ramps
-from Datasets import data
-from models import losses
-
-import torchvision.transforms as transforms
-
-
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 import torchvision.datasets
+
+from Datasets.data import NO_LABEL
+# from misc.utils import *
+# from tensorboardX import SummaryWriter
+import datetime
+# from parameters import get_parameters
+import models
+
+# from misc import ramps
+from Datasets import data
+# from models import losses
+
+import torchvision.transforms as transforms
+
 
 # batch_size = 32
 batch_size = 16
@@ -64,10 +64,10 @@ args = parser.parse_args()
 
 os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
 
-# def tocuda(x):
-#     if args.use_cuda:
-#         return x.cuda()
-#     return x
+def tocuda(x):
+    if args.use_cuda:
+        return x.cuda()
+    return x
 
 def _l2_normalize(d):
 
