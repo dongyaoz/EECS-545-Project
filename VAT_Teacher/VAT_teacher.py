@@ -44,6 +44,8 @@ num_iter_per_epoch = 400
 eval_freq = 5
 lr = 0.001
 cuda_device = "0"
+global global_step
+global_step = 0
 
 
 parser = argparse.ArgumentParser()
