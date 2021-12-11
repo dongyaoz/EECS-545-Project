@@ -58,12 +58,12 @@ parser.add_argument('--method', default='vat')
 parser.add_argument('--model',default='convlarge', help='Basically using Convlarge for all experiments')
 
 
-opt = parser.parse_args()
+args = parser.parse_args()
 
 os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
 
 # def tocuda(x):
-#     if opt.use_cuda:
+#     if args.use_cuda:
 #         return x.cuda()
 #     return x
 
@@ -103,14 +103,17 @@ def d_mse(p1,p2):
     mse_loss = loss(p1, p2)
     return mse_loss
 
-    
+def update_ema_variables(model, ema_model, alpha, global_step):
+    alpha = min(1 - 1 / (global_step + 1), alpha)
+    for ema_param, param in zip(ema_model.parameters(), model.parameters()):
+        ema_param.data.mul_(alpha).add_(1 - alpha, param.data)   
 
 def train(x, y, optimizer):
     # model: find student_model output
     # ema_model: find teacher_model output
     # y: baseline y
     # y_pred: emaout1, which is the student model output of baseline x
-
+    global global_step
     # Ls: cross entropy loss
     ce = nn.CrossEntropyLoss()
     emaout1 = model(x)
@@ -118,21 +121,23 @@ def train(x, y, optimizer):
 
     # find x + perterbation
     x_vap = fint_vap_x(x)
-    emaout2 = model(x_vap)
+    emaout2 = model2(x_vap)
 
      # get teacher model output
     out1 = ema_model(emaout1)
-    out2 = ema_model(emaout2)
+    out2 = ema_model2(emaout2)
     # d_mse
     d_loss = d_mse(out1, out2)
     loss = d_loss + ce_loss
-    if opt.method == 'vatent':
+    if args.method == 'vatent':
         loss += entropy_loss(out2)
 
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
-
+    global_step += 1
+    update_ema_variables(model, ema_model, args.ema_decay, global_step)
+    update_ema_variables(model2, ema_model2, args.ema_decay, global_step)
     return d_loss, ce_loss
 
 
@@ -154,9 +159,9 @@ def weights_init(m):
         m.bias.data.fill_(0)
 
 
-if opt.dataset == 'svhn':
+if args.dataset == 'svhn':
     train_loader = torch.utils.data.DataLoader(
-        datasets.SVHN(root=opt.dataroot, split='train', download=True,
+        datasets.SVHN(root=args.dataroot, split='train', download=True,
                       transform=transforms.Compose([
                           transforms.ToTensor(),
                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -164,17 +169,17 @@ if opt.dataset == 'svhn':
         batch_size=batch_size, shuffle=True)
 
     test_loader = torch.utils.data.DataLoader(
-        datasets.SVHN(root=opt.dataroot, split='test', download=True,
+        datasets.SVHN(root=args.dataroot, split='test', download=True,
                       transform=transforms.Compose([
                           transforms.ToTensor(),
                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                       ])),
         batch_size=eval_batch_size, shuffle=True)
 
-elif opt.dataset == 'cifar10':
+elif args.dataset == 'cifar10':
     num_labeled = 4000
     train_loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(root=opt.dataroot, train=True, download=True,
+        datasets.CIFAR10(root=args.dataroot, train=True, download=True,
                       transform=transforms.Compose([
                           data.RandomTranslateWithReflect(4),
                           transforms.RandomHorizontalFlip(),
@@ -184,7 +189,7 @@ elif opt.dataset == 'cifar10':
         batch_size=batch_size, shuffle=True)
 
     test_loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(root=opt.dataroot, train=False, download=True,
+        datasets.CIFAR10(root=args.dataroot, train=False, download=True,
                       transform=transforms.Compose([
                           transforms.ToTensor(),
                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -219,15 +224,22 @@ ema_model.apply(weights_init)
 optimizer = optim.Adam(model.parameters(), lr=lr)
 optimizer = optim.Adam(ema_model.parameters(), lr=lr)
 
+model2 = models.__dict__[args.model](args, data=None).cuda()
+ema_model2 = models.__dict__[args.model](args,nograd = True, data=None).cuda()
+model2.apply(weights_init)
+ema_model2.apply(weights_init)
+optimizer = optim.Adam(model2.parameters(), lr=lr)
+optimizer = optim.Adam(ema_model2.parameters(), lr=lr)
+
 # Attempts to restore the latest checkpoint if exists
 print('Loading model...')
-model, start_epoch = checkpoint.restore_checkpoint(model, 'checkpoints/{}'.format(opt.dataset))
+model, start_epoch = checkpoint.restore_checkpoint(model, 'checkpoints/{}'.format(args.dataset))
 
 # train the network
-for epoch in range(start_epoch, opt.num_epochs):
+for epoch in range(start_epoch, args.num_epochs):
 
-    if epoch > opt.epoch_decay_start:
-        decayed_lr = (opt.num_epochs - epoch) * lr / (opt.num_epochs - opt.epoch_decay_start)
+    if epoch > args.epoch_decay_start:
+        decayed_lr = (args.num_epochs - epoch) * lr / (args.num_epochs - args.epoch_decay_start)
         optimizer.lr = decayed_lr
         optimizer.betas = (0.5, 0.999)
 
@@ -247,7 +259,7 @@ for epoch in range(start_epoch, opt.num_epochs):
             # print("Epoch :", epoch, "Iter :", i, "VAT Loss :", v_loss.data[0], "CE Loss :", ce_loss.data[0])
             print("Epoch :", epoch+1, "Iter :", i, "VAT Loss :", v_loss.item(), "CE Loss :", ce_loss.item())
 
-    if epoch % eval_freq == 0 or epoch + 1 == opt.num_epochs:
+    if epoch % eval_freq == 0 or epoch + 1 == args.num_epochs:
 
         batch_indices = torch.LongTensor(np.random.choice(labeled_train.size()[0], batch_size, replace=False))
         x = labeled_train[batch_indices]
@@ -263,7 +275,7 @@ for epoch in range(start_epoch, opt.num_epochs):
             break
 
     # Save checkpoint
-    checkpoint.save_checkpoint(model, epoch+1, 'checkpoints/{}'.format(opt.dataset))
+    checkpoint.save_checkpoint(model, epoch+1, 'checkpoints/{}'.format(args.dataset))
 
 
 test_accuracy = 0.0
