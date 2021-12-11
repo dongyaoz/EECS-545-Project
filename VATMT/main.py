@@ -22,12 +22,14 @@ import torchvision.datasets
 from Datasets.data import NO_LABEL
 import datetime
 import models
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 # batch_size = 32
 batch_size = 256
 eval_batch_size = 100
 unlabeled_batch_size = 128
-num_labeled = 1000
+num_labeled = 4000
 num_valid = 1000
 num_iter_per_epoch = 400
 eval_freq = 5
@@ -40,8 +42,8 @@ global_step = 0
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--BN', default=True, help='Use Batch Normalization? ')
-parser.add_argument('--dataset', required=True, help='cifar10 | svhn')
-parser.add_argument('--dataroot', required=True, help='path to dataset')
+parser.add_argument('--dataset', default='cifar10', help='cifar10 | svhn')
+parser.add_argument('--dataroot', default='cifar10', help='path to dataset')
 parser.add_argument('--use_cuda', type=bool, default=True)
 parser.add_argument('--num_epochs', type=int, default=120)
 parser.add_argument('--epoch_decay_start', type=int, default=80)
@@ -109,7 +111,7 @@ def vat_loss(model2, ema_model2, ul_x, ul_y, xi=1e-6, eps=2.5, num_iters=1):
 
     return mse_loss
 
-def train(model, model2, ema_model, ema_model2, x, y, ul_x, optimizer):
+def train(model, model2, ema_model, ema_model2, x, y, ul_x, optimizer1, optimizer2):
     global global_step
     model.train()
     ema_model.train()
@@ -117,22 +119,26 @@ def train(model, model2, ema_model, ema_model2, x, y, ul_x, optimizer):
     ema_model2.train()
 
     ce = nn.CrossEntropyLoss()
-    y_pred = ema_model(x)
+    y_pred = ema_model(x) #TODO: model(x)
     ce_loss = ce(y_pred, y)
 
-    ul_y = ema_model(ul_x)
+    ul_y = ema_model(ul_x) #TODO: model(x)
     mse_loss = vat_loss(model2, ema_model2, ul_x, ul_y, eps=opt.epsilon)
     loss = mse_loss + ce_loss
     if opt.method == 'vatent':
         loss += entropy_loss(ul_y)
 
-    optimizer.zero_grad()
+    optimizer1.zero_grad()
+    optimizer2.zero_grad()
     loss.backward() # update student model
-    optimizer.step()
+    optimizer1.step()
+    optimizer2.step()
     global_step += 1
+    
     # update teacher model
     update_ema_variables(model, ema_model, opt.ema_decay, global_step)
     update_ema_variables(model2, ema_model2, opt.ema_decay, global_step)
+
     return mse_loss, ce_loss
 
 
@@ -215,15 +221,15 @@ model = models.__dict__[opt.model](opt, data=None).cuda()
 ema_model = models.__dict__[opt.model](opt,nograd = True, data=None).cuda()
 model.apply(weights_init)
 ema_model.apply(weights_init)
-optimizer = optim.Adam(model.parameters(), lr=lr)
-optimizer = optim.Adam(ema_model.parameters(), lr=lr)
+optimizer1 = optim.Adam(model.parameters(), lr=lr)
+# optimizer = optim.Adam(ema_model.parameters(), lr=lr)
 
 model2 = models.__dict__[opt.model](opt, data=None).cuda()
 ema_model2 = models.__dict__[opt.model](opt,nograd = True, data=None).cuda()
 model2.apply(weights_init)
 ema_model2.apply(weights_init)
-optimizer = optim.Adam(model2.parameters(), lr=lr)
-optimizer = optim.Adam(ema_model2.parameters(), lr=lr)
+optimizer2 = optim.Adam(model2.parameters(), lr=lr)
+# optimizer = optim.Adam(ema_model2.parameters(), lr=lr)
 
 # Attempts to restore the latest checkpoint if exists
 print('Loading model...')
@@ -234,8 +240,10 @@ for epoch in range(start_epoch, opt.num_epochs):
 
     if epoch > opt.epoch_decay_start:
         decayed_lr = (opt.num_epochs - epoch) * lr / (opt.num_epochs - opt.epoch_decay_start)
-        optimizer.lr = decayed_lr
-        optimizer.betas = (0.5, 0.999)
+        optimizer1.lr = decayed_lr
+        optimizer1.betas = (0.5, 0.999)        
+        optimizer2.lr = decayed_lr
+        optimizer2.betas = (0.5, 0.999)
 
     for i in range(num_iter_per_epoch):
 
@@ -246,7 +254,7 @@ for epoch in range(start_epoch, opt.num_epochs):
         ul_x = unlabeled_train[batch_indices_unlabeled]
 
         v_loss, ce_loss = train(model.train(),model2.train(), ema_model.train(), ema_model2.train(), Variable(tocuda(x)), Variable(tocuda(y)), Variable(tocuda(ul_x)),
-                                optimizer)
+                                optimizer1, optimizer2)
 
         if i % 100 == 0:
             # print(v_loss.item(), ce_loss.item())
