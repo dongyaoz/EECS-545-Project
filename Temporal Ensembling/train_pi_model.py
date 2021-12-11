@@ -13,21 +13,17 @@ from pi_model import PiModel, pi_model_loss, pi_model_gradients, ramp_up_functio
 
 
 def main():
+    # Constants variables
+    NUM_TRAIN_SAMPLES = 4200 #73257
+    NUM_TEST_SAMPLES = 1000 #26032
+
     # choose dataset
     use_cifar10 = True
     use_svhn = False
-
-    # Constants variables
-    if use_cifar10:
-        NUM_TRAIN_SAMPLES = 50000
-        NUM_TEST_SAMPLES = 10000
-    else:
-        NUM_TRAIN_SAMPLES = 73257
-        NUM_TEST_SAMPLES = 26032
     
     # Editable variables
-    num_labeled_samples = 4000
-    num_validation_samples = int(NUM_TRAIN_SAMPLES/10)
+    num_labeled_samples = 1000
+    num_validation_samples = 200
     num_train_unlabeled_samples = NUM_TRAIN_SAMPLES - \
         num_labeled_samples - num_validation_samples
     batch_size = 25
