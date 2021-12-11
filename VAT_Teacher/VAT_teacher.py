@@ -115,7 +115,7 @@ def update_ema_variables(model, ema_model, alpha, global_step):
     for ema_param, param in zip(ema_model.parameters(), model.parameters()):
         ema_param.data.mul_(alpha).add_(1 - alpha, param.data)   
 
-def train(x, y, optimizer):
+def train(model,model2, ema_model, ema_model2,x, y, optimizer):
     # model: find student_model output
     # ema_model: find teacher_model output
     # y: baseline y
@@ -148,7 +148,7 @@ def train(x, y, optimizer):
     return d_loss, ce_loss
 
 
-def eval(model, x, y):
+def eval(model,model2, ema_model, ema_model2, x, y):
 
     y_pred = model(x)
     prob, idx = torch.max(y_pred, dim=1)
@@ -258,9 +258,7 @@ for epoch in range(start_epoch, args.num_epochs):
         batch_indices_unlabeled = torch.LongTensor(np.random.choice(unlabeled_train.size()[0], unlabeled_batch_size, replace=False))
         ul_x = unlabeled_train[batch_indices_unlabeled]
 
-        # v_loss, ce_loss = train(model.train(), Variable(tocuda(x)), Variable(tocuda(y)), Variable(tocuda(ul_x)),
-        #                         optimizer)
-        v_loss, ce_loss = train(model.train(), Variable(tocuda(x)), Variable(tocuda(y)), Variable(tocuda(ul_x)),
+        v_loss, ce_loss = train(model.train(),model2.train(), ema_model.train(), ema_model2.train(), Variable(tocuda(x)), Variable(tocuda(y)), Variable(tocuda(ul_x)),
                                  optimizer)
 
         if i % 100 == 0:
@@ -273,12 +271,12 @@ for epoch in range(start_epoch, args.num_epochs):
         batch_indices = torch.LongTensor(np.random.choice(labeled_train.size()[0], batch_size, replace=False))
         x = labeled_train[batch_indices]
         y = labeled_target[batch_indices]
-        train_accuracy = eval(model.eval(), Variable(tocuda(x)), Variable(tocuda(y)))
+        train_accuracy = eval(model.eval(),model2.eval(), ema_model.eval(), ema_model2.eval(), Variable(tocuda(x)), Variable(tocuda(y)))
         # print("Train accuracy :", train_accuracy.data[0])
         print("Train accuracy :", train_accuracy.item())
 
         for (data, target) in test_loader:
-            test_accuracy = eval(model.eval(), Variable(tocuda(data)), Variable(tocuda(target)))
+            test_accuracy = eval(model.eval(),model2.eval(), ema_model.eval(), ema_model2.eval(), Variable(tocuda(data)), Variable(tocuda(target)))
             # print("Test accuracy :", test_accuracy.data[0])
             print("Test accuracy :", test_accuracy.item())
             break
