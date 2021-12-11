@@ -35,7 +35,7 @@ import torchvision.transforms as transforms
 
 
 # batch_size = 32
-batch_size = 16
+batch_size = 256
 eval_batch_size = 100
 unlabeled_batch_size = 128
 num_labeled = 1000
@@ -49,6 +49,7 @@ global_step = 0
 
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--BN', default=True, help='Use Batch Normalization? ')
 parser.add_argument('--dataset', required=True, help='cifar10 | svhn')
 parser.add_argument('--dataroot', required=True, help='path to dataset')
 parser.add_argument('--use_cuda', type=bool, default=True)
@@ -57,6 +58,10 @@ parser.add_argument('--epoch_decay_start', type=int, default=80)
 parser.add_argument('--epsilon', type=float, default=2.5)
 parser.add_argument('--top_bn', type=bool, default=True)
 parser.add_argument('--method', default='vat')
+parser.add_argument('-b', '--batch-size', default=256, type=int,
+                        metavar='N', help='mini-batch size (default: 256)')
+parser.add_argument('--labeled-batch-size', default=100, type=int,#100
+                        metavar='N', help="labeled examples per minibatch (default: no constrain)")                        
 parser.add_argument('--model',default='convlarge', help='Basically using Convlarge for all experiments')
 
 
@@ -253,8 +258,10 @@ for epoch in range(start_epoch, args.num_epochs):
         batch_indices_unlabeled = torch.LongTensor(np.random.choice(unlabeled_train.size()[0], unlabeled_batch_size, replace=False))
         ul_x = unlabeled_train[batch_indices_unlabeled]
 
+        # v_loss, ce_loss = train(model.train(), Variable(tocuda(x)), Variable(tocuda(y)), Variable(tocuda(ul_x)),
+        #                         optimizer)
         v_loss, ce_loss = train(model.train(), Variable(tocuda(x)), Variable(tocuda(y)), Variable(tocuda(ul_x)),
-                                optimizer)
+                                 optimizer)
 
         if i % 100 == 0:
             # print(v_loss.item(), ce_loss.item())
