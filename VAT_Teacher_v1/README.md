@@ -6,6 +6,6 @@ The dataset used is the same as the one used in Mean Teacher and is not included
 
 Running the code use command
 
-python main.py
+'''python main.py'''
 
 And modify the parameters by modifying the parameters.py file.
