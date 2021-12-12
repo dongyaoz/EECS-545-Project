@@ -102,6 +102,13 @@ def main(args):
     model = models.__dict__[args.model](args, data=None).cuda() # Student
     ema_model = models.__dict__[args.model](args,nograd = True, data=None).cuda() # Teacher
 
+    # Load saved model
+    # filename = os.path.join('ckpts/cifar10/my', 'checkpoint.{}.ckpt'.format(args.start_epoch))
+    # print("Loading from checkpoint {}".format(filename))
+    # checkpoint = torch.load(filename)
+    # model.load_state_dict(checkpoint['state_dict'])
+    # ema_model.load_state_dict(checkpoint['state_dict'])
+    
     optimizer = torch.optim.SGD(model.parameters(), args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
@@ -168,6 +175,8 @@ def main(args):
                 'ema_state_dict': ema_model.state_dict(),
                 'best_prec1': best_prec1,
                 'optimizer' : optimizer.state_dict(),
+                'teacher_acc': ema_prec1,
+                'student_acc': prec1
             }, is_best, save_path, epoch + 1)
 
 
