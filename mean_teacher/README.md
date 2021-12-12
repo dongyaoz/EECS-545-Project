@@ -32,8 +32,8 @@ Say what the step will be
 
 ```
 Mean Teacher
-    a) Student Model : 84.4%
-    b) Teacher Model : 87.07%
+    a) Student Model : 80%
+    b) Teacher Model : 81%
 ```
 
 
