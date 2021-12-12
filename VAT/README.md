@@ -15,4 +15,6 @@ Pytorch implementation of "Virtual Adversarial Training: a Regularization Method
 ```python main.py --dataroot=<dataroot> --dataset=cifar10 --method=vatent --num_epochs=500 --epoch_decay_start=460 --epsilon=10.0 --top_bn=False```
 
 ## To run ours
-```python main.py --dataroot=<dataroot> --dataset=cifar10 --method=vat --num_epochs=370 --epoch_decay_start=385 --epsilon=10.0 --top_bn=False```
+```python main.py --dataroot=cifar --dataset=cifar10 --method=vat --num_epochs=370 --epoch_decay_start=385 --epsilon=10.0 --top_bn=False```
+
+checkpoint.py is used for saving the checkpoint and load the latest saved model (if exist) for training.
