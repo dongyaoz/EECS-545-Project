@@ -66,8 +66,7 @@ Note that all the checkpoints are in the ./ckpt folder so simply start a tensorb
 ```
 
 ## Acknowledgments
-Our implementation has been inspired from the following sources.
+Our implementation has been inspired from the following source.
 
-* [Mean Teacher](https://github.com/iSarmad/MeanTeacher-SNTG-HybridNet) : We have mainly followed this Repo, but 
-* [SNTG](https://github.com/xinmei9322/SNTG) - I have understood the concept of SNTG and converted Theano Implementation to Pytorch
-* [Hybrid Network](https://github.com/dakshitagrawal97/HybridNet) - I have followed this repository to incorporate reconstruction loss in my implementation. 
+* [Mean Teacher](https://github.com/iSarmad/MeanTeacher-SNTG-HybridNet) : We have mainly followed this Repo, but did necessary modification to make the code run on Python 3.7.x and the visualize the results graphically.
+
