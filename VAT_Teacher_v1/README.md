@@ -1,7 +1,7 @@
 
 VAT_Teacher implemented based on the code for Mean Teacher.
 
-Use
+Use command
 
 python main.py
 
