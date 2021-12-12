@@ -14,7 +14,7 @@ Datasets
 
 Existing Code Repositories
 
-[Mean Teacher](https://github.com/CuriousAI/mean-teacher)
+[Mean Teacher (CuriousAI)](https://github.com/CuriousAI/mean-teacher) and [Mean Teacher](https://github.com/iSarmad/MeanTeacher-SNTG-HybridNet)
 
 [Virtual Adversarial Training](https://github.com/takerum/vat_tf)
 
