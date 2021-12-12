@@ -1,18 +1,13 @@
-# Implementation of Mean Teacher, SNTG and HybridNet 
-This Repo is the implementation of the following three papers
+# Implementation of Mean Teacher 
+This Repo is the implementation of the following paper
 
 * [Mean Teacher](https://arxiv.org/abs/1703.01780) Mean teachers are better role models: Weight-averaged consistency targets improve semi-supervised deep learning results 
-* [SNTG](https://arxiv.org/pdf/1711.00258.pdf)   Smooth Neighbors on Teacher Graphs for Semi-supervised Learning
-* [HybridNet](https://arxiv.org/abs/1807.11407) HybridNet: Classification and Reconstruction Cooperation for Semi-Supervised Learning
 
 
-I only used Cifar-10 Dataset. I have used the following architectures:
-
-1. Convlarge ( Mean Teacher and SNTG)
-2. Convlarge based HybridNet ( For Hybrid Net ) 
+We used the Convlarge architecture to train Mean Teacher
 
 
-### versions I use:
+### versions we use:
 1. Pytorch 1.6.0
 2. Python 3.7.3 (<3.8)
 3. torchvision 0.7.0 
@@ -21,10 +16,9 @@ I only used Cifar-10 Dataset. I have used the following architectures:
 
 also work: conda install pytorch==1.7.1 torchvision==0.8.2 torchaudio==0.7.2 cudatoolkit=11.0 -c pytorch
 
-original repo used 2 Titan Xp GPUs. Average training time is 3 hours for hybrid network and 1 hour for other networks.
  
 ### Dataset 
- remainder: I didn't include the shell, but the three folders under "...\data-local\images\cifar\cifar10\by-image" should be \train, \test, and \val
+we didn't include dataset, but after runing the following shell, three folders under "...\data-local\images\cifar\cifar10\by-image" should be \train, \test, and \val
 
 ```
 ./data-local/bin/prepare_cifar10.sh
@@ -37,35 +31,15 @@ A step by step series of examples that tell you how to get a development env run
 Say what the step will be
 
 ```
-1. Supervised Only without BN : 76.6% 
-2. Mean Teacher without BN: 
-    a) Student Model : 83.58%
-    b) Teacher Model : 86.78%
-3. Mean Teacher with BN
+Mean Teacher
     a) Student Model : 84.4%
     b) Teacher Model : 87.07%
-4. Mean Teacher + SNTG with BN
-    a) Student Model : 84.6%
-    b) Teacher Model : 87.28%
-5. Hybrid Network
-    a) Student Model : 84.18%
-    b) Teacher Model : 87.00%
 ```
 
 
 ## Running the Training 
-
-
-### Supervised Model Only (4000 labels of Cifar-10)
-Go the parameters.py and change the following flags as follows:
-
-1. supervised_mode = True ( To use only 4000 labels for training)
-2. lr = 0.15  ( setting the learning rate)
-3. BN = False  ( for turning batch Normalization on or off)
-4. sntg = False ( Do not use any SNTG loss )
-5. Do not change any other settings and run main.py
- Note that my baseline has not Batch Normalization in it. 
-### Mean Teacher Only 
+This repo implemented several methods and control them using flags.
+### For Mean Teacher 
 Go the parameters.py and change the following flags as follows:
 
 1. supervised_mode = False ( To use only 4000 labels for training)
@@ -73,29 +47,6 @@ Go the parameters.py and change the following flags as follows:
 3. BN = False or True  ( for turning batch Normalization on or off)
 4. sntg = False ( Do not use any SNTG loss )
 5. Do not change any other settings and run main.py
-
-Note that my baseline has not Batch Normalization in it. However I tested mean teacher with both a BN and without BN
- 
-
-
-### Mean Teacher + SNTG Loss 
-Go the parameters.py and change the following flags as follows:
-
-1. supervised_mode = False ( To use only 4000 labels for training)
-2. lr = 0.2  ( setting the learning rate)
-3. BN = True  ( for turning batch Normalization on or off)
-4. sntg = True ( Do not use any SNTG loss )
-5. Do not change any other settings and run main.py
-
-### HybridNet  
-Go the parameters.py and change the following flags as follows:
-
-1. supervised_mode = False ( To use only 4000 labels for training)
-2. lr_hybrid = 0.2  ( setting the learning rate)
-3. BN = True  ( for turning batch Normalization on or off)
-4. sntg = False ( Do not use any SNTG loss )
-5. Do not change any other settings and run main_hybrid.py
-
 
 
 ## Tensorboard Visualization
@@ -114,14 +65,9 @@ Note that all the checkpoints are in the ./ckpt folder so simply start a tensorb
 5. SNTG + Meant Teacher: 12-07-00:36/convlarge,Adam,200epochs,b256,lr0.2/test
 ```
 
-
-## License
-
-This project is licensed under the MIT License. 
-For specific helper function used in this repository please see the license agreement of the Repo linked in Acknowledgement section
 ## Acknowledgments
-My implementation has been inspired from the following sources.
+Our implementation has been inspired from the following sources.
 
-* [Mean Teacher](https://github.com/CuriousAI/mean-teacher) : I have mainly followed the Pytorch Version of this Repo
+* [Mean Teacher](https://github.com/iSarmad/MeanTeacher-SNTG-HybridNet) : We have mainly followed this Repo, but 
 * [SNTG](https://github.com/xinmei9322/SNTG) - I have understood the concept of SNTG and converted Theano Implementation to Pytorch
 * [Hybrid Network](https://github.com/dakshitagrawal97/HybridNet) - I have followed this repository to incorporate reconstruction loss in my implementation. 
