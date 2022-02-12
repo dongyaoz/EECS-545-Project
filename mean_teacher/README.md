@@ -6,10 +6,12 @@ This Repo is the implementation of the following paper
 
 We used the Convlarge architecture to train Mean Teacher
 
+checkpoints are set after each epoch to save models and parameters. Ready for plot.
+
 
 ### versions we use:
 1. Pytorch 1.6.0
-2. Python 3.7.3 (<3.8)
+2. Python 3.7.3
 3. torchvision 0.7.0 
 4. cudatoolkit 10.2
 5. TensorboardX
@@ -24,6 +26,10 @@ we didn't include dataset, but after runing the following shell, three folders u
 ./data-local/bin/prepare_cifar10.sh
 ```
 
+### Architecture
+![Architecture](https://github.com/yanbhliu/MeanTeacher/blob/master/Plots/Mean_Teacher.png)
+
+
 ###  Accuracy Achieved on Test Dataset
 
 A step by step series of examples that tell you how to get a development env running
@@ -32,9 +38,10 @@ Say what the step will be
 
 ```
 Mean Teacher
-    a) Student Model : 80%
-    b) Teacher Model : 81%
+    a) Student Model : 79%
+    b) Teacher Model : 80%
 ```
+![Plot of Accuracy](https://github.com/yanbhliu/MeanTeacher/blob/master/Plots/mt_plot.png)
 
 
 ## Running the Training 
@@ -66,7 +73,7 @@ Note that all the checkpoints are in the ./ckpt folder so simply start a tensorb
 ```
 
 ## Acknowledgments
-Our implementation has been inspired from the following source.
+This implementation has been modified based on the following source:
 
 * [Mean Teacher](https://github.com/iSarmad/MeanTeacher-SNTG-HybridNet) : We have mainly followed this Repo, but did necessary modification to make the code run on Python 3.7.x and the visualize the results graphically.
 
