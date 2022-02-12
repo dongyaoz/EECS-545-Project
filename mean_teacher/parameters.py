@@ -42,8 +42,8 @@ def get_parameters():
                         help='list of image labels (default: based on directory structure)')
 
     parser.add_argument('--arch', '-a', metavar='ARCH', default='convlarge') # kind of redundant , remove it
-    parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
-                        help='number of data loading workers (default: 4)')
+    parser.add_argument('-j', '--workers', default=5, type=int, metavar='N',
+                        help='number of data loading workers (default: 5)')
     parser.add_argument('--epochs', default=200, type=int, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
@@ -73,7 +73,7 @@ def get_parameters():
     parser.add_argument('--consistency-rampup', default=5, type=int, metavar='EPOCHS',
                         help='length of the consistency loss ramp-up')
 
-    parser.add_argument('--checkpoint-epochs', default=100, type=int,
+    parser.add_argument('--checkpoint-epochs', default=1, type=int,
                         metavar='EPOCHS', help='checkpoint frequency in epochs, 0 to turn checkpointing off (default: 1)')
     parser.add_argument('--evaluation-epochs', default=1, type=int,
                         metavar='EPOCHS', help='evaluation frequency in epochs, 0 to turn evaluation off (default: 1)')

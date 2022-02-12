@@ -24,14 +24,12 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader
 import torchvision.datasets
 
-# clear unnecessary caches
-torch.cuda.empty_cache()
-torch.cuda.memory_summary(device=None, abbreviated=False)
-
 np.random.seed(5)
 torch.manual_seed(5)
 
 args =None
+
+
 best_prec1 = 0
 global_step = 0
 
@@ -41,27 +39,17 @@ def main(args):
     global best_prec1
 
 
-#     train_transform = data.TransformTwice(transforms.Compose([
-#         data.RandomTranslateWithReflect(4),
-#         transforms.RandomHorizontalFlip(),
-#         transforms.ToTensor(),
-#         transforms.Normalize((0.4914, 0.4822, 0.4465),(0.2470,  0.2435,  0.2616))]))
-
-#     eval_transform = transforms.Compose([
-#         transforms.ToTensor(),
-#         transforms.Normalize((0.4914, 0.4822, 0.4465),(0.2470,  0.2435,  0.2616))
-#     ])
-    # modified data strct. to match VAT
     train_transform = data.TransformTwice(transforms.Compose([
         data.RandomTranslateWithReflect(4),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5),(0.5,  0.5,  0.5))]))
+        transforms.Normalize((0.4914, 0.4822, 0.4465),(0.2470,  0.2435,  0.2616))]))
 
     eval_transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5),(0.5,  0.5,  0.5))
+        transforms.Normalize((0.4914, 0.4822, 0.4465),(0.2470,  0.2435,  0.2616))
     ])
+
 
 
     traindir = os.path.join(args.datadir, args.train_subdir)
@@ -124,7 +112,7 @@ def main(args):
             args.epochs,
             args.batch_size,
             args.lr)
-        time_stamp = datetime.datetime.now().strftime("%m_%d_%H_%M")
+        time_stamp = datetime.datetime.now().strftime("%m-%d-%H:%M")
         save_path = os.path.join(time_stamp, save_path)
         save_path = os.path.join(args.dataName, save_path)
         save_path = os.path.join(args.save_path, save_path)
@@ -166,6 +154,8 @@ def main(args):
                 'ema_state_dict': ema_model.state_dict(),
                 'best_prec1': best_prec1,
                 'optimizer' : optimizer.state_dict(),
+                'student_pred': prec1,
+                'teacher_pred': ema_prec1,
             }, is_best, save_path, epoch + 1)
 
 
@@ -194,10 +184,10 @@ def train(train_loader, model, ema_model, optimizer, epoch):
         if (input.size(0) != args.batch_size):
             continue
 
-        input_var = torch.autograd.Variable(input)
-        with torch.no_grad():
-            ema_input_var = torch.autograd.Variable(ema_input)
-        target_var = torch.autograd.Variable(target.cuda())
+        input_var = torch.autograd.Variable(input).cuda()
+
+
+        target_var = torch.autograd.Variable(target.cuda(async=True))
 
         minibatch_size = len(target_var)
         labeled_minibatch_size = target_var.data.ne(NO_LABEL).sum()
@@ -294,8 +284,8 @@ def validate(eval_loader, model):
     for i, (input, target) in enumerate(eval_loader):
 
         with torch.no_grad():
-            input_var = torch.autograd.Variable(input)
-            target_var = torch.autograd.Variable(target.cuda())
+            input_var = input.cuda()
+            target_var = target.cuda(async=True)
 
             labeled_minibatch_size = target_var.data.ne(NO_LABEL).sum()
             assert labeled_minibatch_size > 0
